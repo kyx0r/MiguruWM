@@ -7,6 +7,7 @@ class VirtualDesktopManagerInternal extends InterfaceWrapper {
         IVirtualDesktopManagerInternal_19044,
         IVirtualDesktopManagerInternal_22000,
         IVirtualDesktopManagerInternal_22489,
+        IVirtualDesktopManagerInternal_26100,
     ]
 
     __New(immersiveShell) {

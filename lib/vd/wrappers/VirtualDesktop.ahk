@@ -3,6 +3,7 @@ class VirtualDesktop extends InterfaceWrapper {
         IVirtualDesktop2_19044,
         IVirtualDesktop_19044,
         IVirtualDesktop_22000,
+        IVirtualDesktop_26100,
     ]
 
     IsViewVisible(view) {

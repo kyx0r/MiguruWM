@@ -78,3 +78,13 @@ class IVirtualDesktop_22000 extends IVirtualDesktop2_19044 {
         return StrGet(str)
     }
 }
+
+class IVirtualDesktop_26100 extends IVirtualDesktop_22000 {
+    static GUID    := "{3F07F4BE-B107-441A-AF0F-39D82529072C}"
+    static Methods := [
+        ;HRESULT Proc3([in] IApplicationView* p0, [out] int* p1);
+        ;HRESULT Proc4([out] GUID* p0);
+        ;HRESULT Proc5([out] FC_USER_MARSHAL** p0);
+        ;HRESULT Proc6([out] FC_USER_MARSHAL** p0);
+    ]
+}
