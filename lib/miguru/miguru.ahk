@@ -68,7 +68,7 @@ class MiguruWM extends WMEvents {
             tilingMinWidth: 500,
             tilingMinHeight: 500,
             tilingInsertion: "last",
-            floatingAlwaysOnTop: false,
+            floatingAlwaysOnTop: true,
 
             focusFollowsMouse: false,
             mouseFollowsFocus: false,
@@ -76,7 +76,7 @@ class MiguruWM extends WMEvents {
             followWindowToWorkspace: false,
             followWindowToMonitor: false,
 
-            focusWorkspaceByWindow: true,
+            focusWorkspaceByWindow: false,
 
             showPopup: (*) =>,
             focusIndicator: {
@@ -274,7 +274,7 @@ class MiguruWM extends WMEvents {
                 ;; still being invisible. So in case that same window is shown
                 ;; later on it should be additionally focused.
                 if event == EV_WINDOW_FOCUSED
-                    && !WinExist("ahk_id" hwnd " ahk_group MIGURU_IGNORE") {
+                    && WinExist("ahk_id" hwnd " ahk_group MIGURU_MANAGE") {
 
                     debug("Set maybe-active to non-managed {}", WinInfo(hwnd))
                     this._maybeActiveWindow := hwnd
@@ -934,8 +934,13 @@ class MiguruWM extends WMEvents {
 
     ;; Add a window for which an event happened to the global list if it hasn't
     ;; been added yet.
-    _manage(event, hwnd, retrycnt := -1) {
+    _manage(event, hwnd, retrycnt := -1, ignore := 0) {
         if this._managed.Has(hwnd) {
+            if ignore {
+               trace(() => ["Drop: unmanaging {}", hwnd])
+               this._drop(hwnd)
+               return ""
+            }
             trace(() => ["Ignoring: already managed D={} WS={} {}",
                 this._managed[hwnd].monitor.Index,
                 this._managed[hwnd].workspace.Index,
@@ -953,12 +958,12 @@ class MiguruWM extends WMEvents {
                 || IsWindowCloaked(hwnd) {
                 trace(() => ["Ignoring: hidden {}", WinInfo(hwnd)])
                 return ""
-            } else if WinExist("ahk_id" hwnd " ahk_group MIGURU_DECOLESS") {
+            } else if (ignore || WinExist("ahk_id" hwnd " ahk_group MIGURU_DECOLESS")) {
                 ;; Do nothing
             } else if WinGetStyle("ahk_id" hwnd) & WS_CAPTION == 0 {
                 trace(() => ["Ignoring: no titlebar {}", WinInfo(hwnd)])
                 return ""
-            } else if WinExist("ahk_id" hwnd " ahk_group MIGURU_IGNORE") {
+            } else if !WinExist("ahk_id" hwnd " ahk_group MIGURU_MANAGE") {
                 trace(() => ["Ignoring: ahk_group {}", WinInfo(hwnd)])
                 return ""
             }

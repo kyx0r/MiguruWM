@@ -7,24 +7,17 @@ KeyHistory(0), ListLines(false), ProcessSetPriority("H")
 
 #include *i lib\miguru\miguru.ahk
 #include *i lib\Popup.ahk
+#include macros.ahk
 
-GroupAdd("MIGURU_AUTOFLOAT", "Microsoft Teams-Benachrichtigung" " ahk_exe Teams.exe"                                                  )
-GroupAdd("MIGURU_AUTOFLOAT", "Microsoft Teams-Notification"     " ahk_exe Teams.exe"                                                  )
-GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe QuickLook.exe"                                              )
-GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe outlook.exe"              " ahk_class MsoSplash"            )
-GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe explorer.exe"             " ahk_class OperationStatusWindow")
-GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe taskmgr.exe"                                                )
-GroupAdd("MIGURU_AUTOFLOAT", "Calculator"                       " ahk_exe ApplicationFrameHost.exe"                                   )
-GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe zeal.exe"                                                   )
+GroupAdd("MIGURU_MANAGE",                                       " ahk_exe mintty.exe"                                                 )
+GroupAdd("MIGURU_MANAGE", "Window Spy for AHKv2"                                                                                      )
+GroupAdd("MIGURU_MANAGE",                                       " ahk_exe SnippingTool.exe"                                           )
+GroupAdd("MIGURU_MANAGE",                                       " ahk_exe chrome.exe"                                                 )
+GroupAdd("MIGURU_MANAGE",                                       " ahk_exe explorer.exe"                                               )
+
 GroupAdd("MIGURU_AUTOFLOAT", "Window Spy for AHKv2"                                                                                   )
-GroupAdd("MIGURU_AUTOFLOAT", "WinMerge"                                                                                               )
-
-GroupAdd("MIGURU_DECOLESS",                                     " ahk_exe qutebrowser.exe"                                            )
-GroupAdd("MIGURU_DECOLESS",                                     " ahk_exe alacritty.exe"                                              )
-GroupAdd("MIGURU_DECOLESS",                                     " ahk_exe msrdc.exe"                " ahk_class RAIL_WINDOW"          )
-
-GroupAdd("MIGURU_IGNORE",                                       " ahk_exe msrdc.exe"                                                  )
-GroupAdd("MIGURU_IGNORE",    "WinUI Desktop"                    " ahk_exe PowerToys.Peek.UI.exe"    " ahk_class WinUIDesktopWin32WindowClass")
+GroupAdd("MIGURU_AUTOFLOAT",                                    " ahk_exe SnippingTool.exe"                                           )
+GroupAdd("MIGURU_DECOLESS",                                     " ahk_exe mintty.exe"                                                 )
 
 if !IsSet(MiguruWM) {
     prog := RegExReplace(A_ScriptName, "i)\.ahk$", ".exe")
@@ -36,14 +29,8 @@ if !IsSet(MiguruWM) {
 
 layouts := [
     TallLayout(),
-    WideLayout(),
     FullscreenLayout(),
     FloatingLayout(),
-    ColumnLayout(),
-    RowLayout(),
-    ThreeColumnLayout(),
-    TwoPaneLayout(),
-    SpiralLayout(),
 ]
 
 mwm := { __Call: (name, params*) => } ; Ignore requests while mwm isn't ready yet
@@ -53,7 +40,6 @@ mwm := MiguruWM({
         duration: 500,
         showIcon: true,
     }, opts)),
-    focusIndicator: HazeOver(),
     ;; …see https://github.com/imawizard/MiguruWM/wiki/Configuration
 })
 
@@ -92,14 +78,14 @@ Alt::return
 *.::mwm.Set("master-count", { delta: -1 })
 
 *t::mwm.Do("float-window", { value: "toggle" }), mwm.Do("center-window")
-*p::OpenSearch()
+
 *q::Reload()
 
 *Enter::mwm.Do("swap-window", { with: "master" })
-*Space::mwm.Do("cycle-layout", { value: layouts })
+*s::mwm.Do("cycle-layout", { value: layouts })
 
-*vk01::MoveActiveWindow()
-*vk02::ResizeActiveWindow()
+^*vk01::MoveActiveWindow()
+^*vk02::ResizeActiveWindow()
 
 *F1::Logger.ToggleConsole()
 *F2::mwm.Do("get-workspace-info")
@@ -127,7 +113,7 @@ Alt::return
 *c::try WinClose("A")
 *q::ExitApp()
 
-*Enter::OpenTerminal()
+*Enter::Manage()
 *Space::ResetLayout()
 
 ; ..........................................................................}}}
@@ -159,23 +145,18 @@ GetSHAppFolderPath(hwnd := 0) {
     return res
 }
 
-OpenTerminal() {
-    wd := EnvGet("USERPROFILE")
-    if WinGetProcessName("A") == "explorer.exe" {
-        path := GetSHAppFolderPath()
-        if path && Substr(path, 1, 2) !== "::" {
-            wd := path
-        }
+Manage() {
+    try hwnd := WinExist("A")
+    if hwnd {
+       w := mwm._manage(EV_WINDOW_FOCUSED, hwnd, -1, 1)
+       if w != "" {
+            mwm._onWindowEvent(EV_WINDOW_REPOSITIONED, hwnd)
+       }
     }
-    Run("wt.exe -d " wd)
 }
 
 OpenTaskView() {
     Send("#{Tab}")
-}
-
-OpenSearch() {
-    Send("#s")
 }
 
 ShowDesktop() {
