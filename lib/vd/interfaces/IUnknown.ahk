@@ -18,54 +18,55 @@ class IUnknown {
             if value == 0 {
                 return
             }
-
-            ;; Take ownership of the interface pointer.
             this._value.Ptr := value
+            this._setupVTable(value)
+        }
+    }
 
-            classes := []
-            proto := this.Base
-            while proto && proto !== IUnknown.Base.Prototype {
-                classes.Push(%proto.__Class%)
-                proto := proto.Base
-            }
+    _setupVTable(sentinel) {
+        classes := []
+        proto := this.Base
+        while proto && proto !== IUnknown.Base.Prototype {
+            classes.Push(%proto.__Class%)
+            proto := proto.Base
+        }
 
-            guid := ""
-            methods := []
-            loop classes.Length {
-                c := classes[-A_Index]
-                if c.HasOwnProp("GUID") {
-                    guid := c.GUID
-                }
-                if c.HasOwnProp("Methods") {
-                    methods.Push(c.Methods*)
-                }
+        guid := ""
+        methods := []
+        loop classes.Length {
+            c := classes[-A_Index]
+            if c.HasOwnProp("GUID") {
+                guid := c.GUID
             }
+            if c.HasOwnProp("Methods") {
+                methods.Push(c.Methods*)
+            }
+        }
 
-            ;; Filter dupes in methods.
-            filtered := []
-            uniq := Map()
-            loop methods.Length {
-                i := methods.Length - A_Index + 1
-                m := methods[i]
-                if !uniq.Has(m) {
-                    uniq[m] := i
-                }
+        ;; Filter dupes in methods.
+        filtered := []
+        uniq := Map()
+        loop methods.Length {
+            i := methods.Length - A_Index + 1
+            m := methods[i]
+            if !uniq.Has(m) {
+                uniq[m] := i
             }
-            for i, m in methods {
-                if i == uniq[m] {
-                    filtered.Push(m)
-                }
+        }
+        for i, m in methods {
+            if i == uniq[m] {
+                filtered.Push(m)
             }
+        }
 
-            if guid && guid !== IUnknown.GUID {
-                ;; Might throw an error.
-                this._value := ComObjQuery(value, guid)
-            }
+        if guid && guid !== IUnknown.GUID {
+            ;; Might throw an error.
+            this._value := ComObjQuery(this._value, guid)
+        }
 
-            this._funcs := Map()
-            for i, name in filtered {
-                this._funcs[name] := ComCall.Bind(i - 1, this)
-            }
+        this._funcs := Map()
+        for i, name in filtered {
+            this._funcs[name] := ComCall.Bind(i - 1, this)
         }
     }
 

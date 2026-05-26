@@ -2,12 +2,12 @@ SID_IVirtualDesktopManagerInternal_19044 := "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC46
 
 class VirtualDesktopManagerInternal extends InterfaceWrapper {
     static Interfaces := [
-        IVirtualDesktopManagerInternal3_19044,
-        IVirtualDesktopManagerInternal2_19044,
-        IVirtualDesktopManagerInternal_19044,
-        IVirtualDesktopManagerInternal_22000,
-        IVirtualDesktopManagerInternal_22489,
         IVirtualDesktopManagerInternal_26100,
+        IVirtualDesktopManagerInternal_22489,
+        IVirtualDesktopManagerInternal_22000,
+        IVirtualDesktopManagerInternal_19044,
+        IVirtualDesktopManagerInternal2_19044,
+        IVirtualDesktopManagerInternal3_19044,
     ]
 
     __New(immersiveShell) {
