@@ -314,12 +314,17 @@ class VD {
     }
 
     _desktopIndexById(needle) {
-        desktops := this.managerInternal.GetDesktops()
-        loop desktops.GetCount() {
-            desktop := desktops.GetAt(A_Index)
-            if desktop.GetId() == needle {
-                return A_Index
+        try {
+            desktops := this.managerInternal.GetDesktops()
+            loop desktops.GetCount() {
+                desktop := desktops.GetAt(A_Index)
+                if desktop.GetId() == needle {
+                    return A_Index
+                }
             }
+        } catch as err {
+            ; Race condition: the desktop array changed between GetDesktops
+            ; and GetAt. Return 0 to indicate "not found".
         }
         return 0
     }

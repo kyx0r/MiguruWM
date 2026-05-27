@@ -73,7 +73,11 @@ class ApplicationViewArray extends IObjectArray {
     GetAt(index) {
         view := ApplicationView()
 
-        super.GetAt(view, index)
+        try {
+            super.GetAt(view, index)
+        } catch {
+            return false
+        }
         if !view.Ptr {
             return false
         }

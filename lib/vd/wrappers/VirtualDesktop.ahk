@@ -29,7 +29,11 @@ class VirtualDesktopArray extends IObjectArray {
     GetAt(index) {
         desktop := VirtualDesktop()
 
-        super.GetAt(desktop, index)
+        try {
+            super.GetAt(desktop, index)
+        } catch {
+            return false
+        }
         if !desktop.Ptr {
             return false
         }

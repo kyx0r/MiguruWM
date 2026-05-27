@@ -14,8 +14,9 @@ class InterfaceWrapper {
                 return
             }
 
-            a := %this.__Class%.Interfaces
-            for i, t in a {
+            interfaces := %this.__Class%.Interfaces
+            lastErr := ""
+            for i, t in interfaces {
                 v := t()
                 try {
                     ;; v takes ownership of the pointer.
@@ -32,18 +33,18 @@ class InterfaceWrapper {
                     if v.Ptr {
                         ObjAddRef(value)
                     }
-                    ;; Swallow every error but E_NOINTERFACE.
-                    if !InStr(err.Message, Format("{:x}", E_NOINTERFACE)) {
-                        throw
-                    }
+                    lastErr := err.Message
                 }
             }
 
-            msg := "None of these interfaces seem to be supported:`n"
-            for t in a {
-                msg .= "`t" t.Prototype.__Class " (" t.GUID ")`n"
+            if lastErr {
+                msg := "None of these interfaces seem to be supported:`n"
+                for t in interfaces {
+                    msg .= "`t" t.Prototype.__Class " (" t.GUID ")`n"
+                }
+                msg .= "`nLast error: " lastErr
+                throw msg
             }
-            throw msg
         }
     }
 }
