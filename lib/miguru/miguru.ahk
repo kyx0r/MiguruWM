@@ -403,10 +403,6 @@ class MiguruWM extends WMEvents {
                 this._focusIndicator.Show(newWs.ActiveWindow)
             }
 
-            this._opts.showPopup.Call(this.VD.DesktopName(args.now), {
-                activeMonitor: this.activeMonitor.Index,
-            })
-
             ;; Add pinned windows to the newly active workspace or retile.
             if this._pinned.Count > 0 {
                 for k in this._pinned {
