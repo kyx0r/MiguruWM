@@ -5,6 +5,11 @@
 A_MaxHotkeysPerInterval := 1000
 KeyHistory(0), ListLines(false), ProcessSetPriority("H")
 
+; Modifier used by the #HotIf contexts below. Must be assigned before any code
+; that can pump messages (e.g. MiguruWM()), otherwise a key press can evaluate
+; the #HotIf expression while mod1 is still unset.
+global mod1 := "Alt"
+
 #include *i lib\miguru\miguru.ahk
 #include *i lib\Popup.ahk
 #include macros.ahk
@@ -45,8 +50,7 @@ mwm := MiguruWM({
 
 MiguruWM.SetupTrayMenu()
 
-; Use Alt as modifier but disable it if pressed alone
-mod1 := "Alt"
+; Use Alt as modifier but disable it if pressed alone (mod1 set at top)
 Alt::return
 
 ; Keybindings .............................................................{{{1
