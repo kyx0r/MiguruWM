@@ -5,10 +5,11 @@
 A_MaxHotkeysPerInterval := 1000
 KeyHistory(0), ListLines(false), ProcessSetPriority("H")
 
-; Modifier used by the #HotIf contexts below. Must be assigned before any code
-; that can pump messages (e.g. MiguruWM()), otherwise a key press can evaluate
-; the #HotIf expression while mod1 is still unset.
-global mod1 := "Alt"
+; Modifier used by the #HotIf contexts below. Must be assigned before anything
+; that can take time or pump messages (e.g. MiguruWM()): a #HotIf expression is
+; evaluated whenever the program needs to know whether a hotkey is active, not
+; just on key press, and would throw on an unset mod1.
+mod1 := "Alt"
 
 #include *i lib\miguru\miguru.ahk
 #include *i lib\Popup.ahk
@@ -150,12 +151,14 @@ GetSHAppFolderPath(hwnd := 0) {
 }
 
 Manage() {
-    try hwnd := WinExist("A")
-    if hwnd {
-       w := mwm._manage(EV_WINDOW_FOCUSED, hwnd, -1, 1)
-       if w != "" {
-            mwm._onWindowEvent(EV_WINDOW_REPOSITIONED, hwnd)
-       }
+    hwnd := WinExist("A")
+    if !hwnd {
+        return
+    }
+    ;; Toggles: an already-managed window gets dropped and "" is returned,
+    ;; otherwise the window is force-managed and needs to be tiled.
+    if mwm._manage(EV_WINDOW_FOCUSED, hwnd, -1, 1) {
+        mwm._onWindowEvent(EV_WINDOW_REPOSITIONED, hwnd)
     }
 }
 

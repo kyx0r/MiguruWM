@@ -7,12 +7,12 @@
 
 ^space::
 {
-	WinSetAlwaysOnTop -1, "A"
+	WinSetAlwaysOnTop(-1, "A")
 }
 
 !b::
 {
-	WinSetStyle "^0xC40000", "A"
+	WinSetStyle("^0xC40000", "A")
 	;WinHide "A"
 	;WinShow "A"
 }
@@ -37,34 +37,25 @@
 	Sleep 100
 	Loop
 	{
-		oid := WinGetList("Remote Desktop Connection",,,)
-		aid := Array()
-		id := oid.Length
-		For v in oid
+		for this_id in WinGetList("Remote Desktop Connection")
 		{
-			aid.Push(v)
-		}
-		Loop aid.Length
-		{
-			this_id := aid[A_Index]
-			this_title := WinGetTitle("ahk_id " this_id)
-			; Try to activate and restore the window if it's minimized
+			; A window can vanish at any point below; losing it must not
+			; kill the whole keep-alive loop.
 			try {
+				; Try to activate and restore the window if it's minimized
 				FocusedHwnd := ControlGetHwnd("IHWindowClass1", "ahk_id " this_id)
-			} catch Error as err {
-				;ToolTip(this_title)
+				state := WinGetMinMax("ahk_id " this_id)
+				if (state = -1)
+					WinActivate("ahk_id " this_id)
+				FocusedClassNN := ControlGetClassNN(FocusedHwnd)
+				ControlShow(FocusedClassNN, "ahk_id " this_id)
+				ControlFocus(FocusedClassNN, "ahk_id " this_id)
+				ControlSend("{Shift}", FocusedClassNN, "ahk_id " this_id)
+				if (state = -1)
+					WinMinimize("ahk_id " this_id)
+			} catch Error {
 				continue
 			}
-			state := WinGetMinMax("ahk_id" this_id)
-			if (state = -1)
-				WinActivate("ahk_id " this_id)
-			FocusedClassNN := ControlGetClassNN(FocusedHwnd)
-			;ToolTip(FocusedClassNN)
-			ControlShow(FocusedClassNN, "ahk_id " this_id)
-			ControlFocus(FocusedClassNN, "ahk_id " this_id)
-			ControlSend("{Shift}", FocusedClassNN, "ahk_id " this_id)
-			if (state = -1)
-				WinMinimize("ahk_id " this_id)
 		}
 		;Sleep(10000)
 		Sleep(280000)
@@ -88,14 +79,27 @@
 
 ^!t::
 {
+	pass := EnvGet("rdppass")
+	if pass == "" {
+		MsgBox("rdppass is not set")
+		return
+	}
 	Run "C:\Users\win\Desktop\eng36.rdp"
-	WinWaitActive "ahk_exe CredentialUIBroker.exe"
+	;; Without a timeout this waits forever and leaves the thread hanging.
+	if !WinWaitActive("ahk_exe CredentialUIBroker.exe", , 30) {
+		return
+	}
 	Sleep(1500)
-	ControlSendText(EnvGet("rdppass"), , "ahk_exe CredentialUIBroker.exe")
+	;; Bail out if the prompt lost focus in the meantime, so that the
+	;; password can't end up in whatever window is active now.
+	if !WinActive("ahk_exe CredentialUIBroker.exe") {
+		return
+	}
+	ControlSendText(pass, , "ahk_exe CredentialUIBroker.exe")
 	Sleep(1500)
 	ControlSend("{Enter}", , "ahk_exe CredentialUIBroker.exe")
 }
 
 #SuspendExempt
-!o::Suspend  ; Ctrl+Alt+S
+!o::Suspend  ; Alt+O
 #SuspendExempt False
