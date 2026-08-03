@@ -30,18 +30,6 @@ IsTransientVDError(number) {
     return false
 }
 
-;; True when the COM proxy is dead for good and has to be re-created.
-IsDisconnectedVDError(number) {
-    switch number & 0xFFFFFFFF {
-    case 0x800706BA, ;; RPC_S_SERVER_UNAVAILABLE
-         0x80010105, ;; RPC_E_SERVERFAULT
-         0x80010108, ;; RPC_E_DISCONNECTED
-         0x800401FD: ;; CO_E_OBJNOTCONNECTED
-        return true
-    }
-    return false
-}
-
 StringifyGUID(guid) {
     ptr := 0
     if guid is Integer {

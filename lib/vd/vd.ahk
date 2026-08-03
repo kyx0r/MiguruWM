@@ -175,6 +175,19 @@ class VD {
             return false
         }
 
+        ;; Already on it: switching would only steal focus from the active
+        ;; window through the taskbar/Alt+Esc dance below.
+        try {
+            current := this.managerInternal.GetCurrentDesktop()
+            if current.Ptr && current.GetId() == desktop.GetId() {
+                return true
+            }
+        } catch OSError as err {
+            if !IsTransientVDError(err.Number) {
+                throw err
+            }
+        }
+
         try {
             ;; Fails if called when task view is open.
             WinActivate("ahk_class Shell_TrayWnd")
@@ -214,7 +227,6 @@ class VD {
             if !IsTransientVDError(err.Number) {
                 throw err
             }
-            this._reconnectManager(err)
             return 0
         }
     }
@@ -228,7 +240,6 @@ class VD {
             if !IsTransientVDError(err.Number) {
                 throw err
             }
-            this._reconnectManager(err)
             return ""
         }
     }
@@ -289,19 +300,6 @@ class VD {
             callback.Call(event, {
                 view: args.view,
             })
-        }
-    }
-
-    ;; Re-creates the IVirtualDesktopManager proxy after the shell dropped it,
-    ;; otherwise every later call would keep failing.
-    _reconnectManager(err) {
-        if !IsDisconnectedVDError(err.Number) {
-            return
-        }
-        try {
-            this.manager := VirtualDesktopManager("")
-        } catch {
-            ;; Shell isn't ready yet, keep the old proxy and retry next time.
         }
     }
 
