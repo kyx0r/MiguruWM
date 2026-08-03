@@ -211,9 +211,10 @@ class VD {
             desktop := this._desktopIndexById(guid)
             return desktop ? desktop : VD_UNKNOWN_DESKTOP
         } catch OSError as err {
-            if err.Number !== E_ELEMENTNOTFOUND && err.Number !== E_INVALIDARG {
+            if !IsTransientVDError(err.Number) {
                 throw err
             }
+            this._reconnectManager(err)
             return 0
         }
     }
@@ -224,9 +225,10 @@ class VD {
         try {
             return StringifyGUID(this.manager.GetWindowDesktopId(hwnd))
         } catch OSError as err {
-            if err.Number !== E_ELEMENTNOTFOUND && err.Number !== E_INVALIDARG {
+            if !IsTransientVDError(err.Number) {
                 throw err
             }
+            this._reconnectManager(err)
             return ""
         }
     }
@@ -287,6 +289,19 @@ class VD {
             callback.Call(event, {
                 view: args.view,
             })
+        }
+    }
+
+    ;; Re-creates the IVirtualDesktopManager proxy after the shell dropped it,
+    ;; otherwise every later call would keep failing.
+    _reconnectManager(err) {
+        if !IsDisconnectedVDError(err.Number) {
+            return
+        }
+        try {
+            this.manager := VirtualDesktopManager("")
+        } catch {
+            ;; Shell isn't ready yet, keep the old proxy and retry next time.
         }
     }
 

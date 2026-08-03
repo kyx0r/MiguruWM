@@ -11,6 +11,37 @@ ParseGUID(stringified) {
     return StrGet(guid, -guid.Size / 2, "utf-16")
 }
 
+;; True for HRESULTs meaning "this query can't be answered right now": the
+;; window died, the shell is busy switching desktops, or the COM proxy went
+;; away. Callers should treat those as "unknown desktop" and retry later.
+IsTransientVDError(number) {
+    switch number & 0xFFFFFFFF {
+    case 0x8002802B, ;; E_ELEMENTNOTFOUND
+         0x80004005, ;; E_FAIL
+         0x80070005, ;; E_ACCESSDENIED
+         0x80070057, ;; E_INVALIDARG
+         0x8007139F, ;; E_NOT_VALID_STATE
+         0x800706BA, ;; RPC_S_SERVER_UNAVAILABLE
+         0x80010105, ;; RPC_E_SERVERFAULT
+         0x80010108, ;; RPC_E_DISCONNECTED
+         0x800401FD: ;; CO_E_OBJNOTCONNECTED
+        return true
+    }
+    return false
+}
+
+;; True when the COM proxy is dead for good and has to be re-created.
+IsDisconnectedVDError(number) {
+    switch number & 0xFFFFFFFF {
+    case 0x800706BA, ;; RPC_S_SERVER_UNAVAILABLE
+         0x80010105, ;; RPC_E_SERVERFAULT
+         0x80010108, ;; RPC_E_DISCONNECTED
+         0x800401FD: ;; CO_E_OBJNOTCONNECTED
+        return true
+    }
+    return false
+}
+
 StringifyGUID(guid) {
     ptr := 0
     if guid is Integer {
